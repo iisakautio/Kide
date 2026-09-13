@@ -195,15 +195,10 @@ export const Bot = () => {
 			if (variantsGot.includes(variant.id)) continue;
 			addLog(`Varataan lippuja vaihtoehdolle ${variant.name}...`);
 
-			let maxQuantity: number;
 			const availability = variant.availability;
-			const maxQuantityPerOrder =
-				variant.productVariantMaximumReservableQuantity;
-			availability > maxQuantityPerOrder
-				? (maxQuantity = maxQuantityPerOrder)
-				: (maxQuantity = availability);
+			const quantity = 1;
 
-			if (maxQuantity === 0) {
+			if (availability === 0) {
 				addLog(
 					`Lippuja vaihtoehdolle ${variant.name} ei ole enää saatavilla.`
 				);
@@ -213,7 +208,7 @@ export const Bot = () => {
 			const promise = reserveTicketRecursive(
 				variant,
 				globalCtx.authorizationToken,
-				maxQuantity,
+				quantity,
 				0
 			);
 			promiseArray.push(promise);
