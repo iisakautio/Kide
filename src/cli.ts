@@ -85,15 +85,8 @@ async function main() {
 	const refreshDelay = Number(await ask('Tapahtuman päivitysviive (ms)', '1000')) || 1000;
 	const retryDelay = Number(await ask('Lipun varausviive (ms)', '500')) || 500;
 
-	// 4) Avainsanat
-	const tagsInput = await ask(
-		'Avainsanat pilkulla eroteltuna, esim. jvg,vip (max 3, tyhjä = kaikki lipputyypit)'
-	);
-	const tags = tagsInput
-		.split(',')
-		.map((t) => t.trim())
-		.filter(Boolean)
-		.slice(0, 3);
+	// 4) Avainsanat — kiinnitetty Vujut-tapahtuman lipputyyppeihin
+	const tags = ['Artiklan jäsen', 'avec jäsen'];
 
 	console.log('\nYhteenveto:');
 	console.log(`  Tapahtuma:      ${event.product.name}`);
