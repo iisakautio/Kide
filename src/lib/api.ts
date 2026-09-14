@@ -1,13 +1,12 @@
 import { IEvent, IUser, IVariant } from '../interfaces/interfaces';
 import { getRequestId } from '../utils/getRequestedId';
-import { reverseString } from '../utils/reverseString';
 
 const API_BASE = 'https://api.kide.app/api';
 
 export const apiLogin = async (accessToken: string): Promise<IUser> => {
 	const response = await fetch(`${API_BASE}/authentication/user`, {
 		headers: {
-			authorization: `Bearer ${reverseString(accessToken)}`,
+			authorization: `Bearer ${accessToken}`,
 		},
 	});
 
@@ -42,7 +41,7 @@ export const apiReserveTicket = async (
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				authorization: `Bearer ${reverseString(accessToken)}`,
+				authorization: `Bearer ${accessToken}`,
 				'X-Requested-Token-fa': requestId,
 			},
 			body: JSON.stringify({
