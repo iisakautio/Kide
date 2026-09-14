@@ -45,7 +45,7 @@ const reserveRecursive = async (
 	return reserveRecursive(variant, accessToken, retryDelay, tries + 1);
 };
 
-const EVENT_URL = 'https://kide.app/events/76ddeac4-f4cd-466a-b8bc-df0e9b6bfb89';
+const EVENT_URL = 'https://kide.app/events/4b5875fa-4dae-42eb-aaf2-0dc4a4b0092a';
 const TAGS = ['jäsen'];
 const EXCLUDE_TAGS = ['kunniajäsen'];
 
@@ -122,7 +122,7 @@ async function main() {
 		return;
 	}
 
-	console.log('Kiderat CLI — Vujut-tapahtuman lippujen varausbotti\n');
+	console.log('Kiderat CLI — testihaara toiselle lipunmyynnille\n');
 
 	// 1) Kirjautuminen
 	let accessToken = '';
