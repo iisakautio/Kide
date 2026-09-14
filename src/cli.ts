@@ -52,7 +52,7 @@ const reserveRecursive = async (
 };
 
 const EVENT_URL = 'https://kide.app/events/4b5875fa-4dae-42eb-aaf2-0dc4a4b0092a';
-const TAGS = ['jäsen'];
+const TAGS = ['Humakin opiskelija, jäsen'];
 const EXCLUDE_TAGS = ['kunniajäsen', 'ei jäsen', 'non-member'];
 
 const matchesTag = (variantName: string, tag: string): boolean =>
