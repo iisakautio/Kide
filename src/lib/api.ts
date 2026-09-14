@@ -29,11 +29,18 @@ export const apiRefreshEvent = async (productId: string): Promise<IEvent> => {
 	return data.model;
 };
 
+export interface IReserveResult {
+	ok: boolean;
+	status?: number;
+	body?: string;
+	networkError?: string;
+}
+
 export const apiReserveTicket = async (
 	variant: IVariant,
 	accessToken: string,
 	quantity: number
-): Promise<boolean> => {
+): Promise<IReserveResult> => {
 	const requestId = getRequestId(variant.inventoryId);
 
 	try {
@@ -56,8 +63,9 @@ export const apiReserveTicket = async (
 			}),
 		});
 
-		return response.ok;
-	} catch {
-		return false;
+		const body = await response.text().catch(() => '');
+		return { ok: response.ok, status: response.status, body };
+	} catch (err) {
+		return { ok: false, networkError: err instanceof Error ? err.message : String(err) };
 	}
 };

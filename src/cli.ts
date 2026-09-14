@@ -26,20 +26,26 @@ const reserveRecursive = async (
 	retryDelay: number,
 	tries = 0
 ): Promise<number> => {
-	const ok = await apiReserveTicket(variant, accessToken, 1);
+	const result = await apiReserveTicket(variant, accessToken, 1);
 
-	if (ok) {
+	if (result.ok) {
 		log(`Lippu "${variant.name}" onnistui.`);
 		return 1;
 	}
 
+	const reason = result.networkError
+		? `verkkovirhe: ${result.networkError}`
+		: `HTTP ${result.status} — ${result.body?.slice(0, 300) || '(ei vastausleipätekstiä)'}`;
+
 	if (tries >= 3) {
-		log(`Lippu "${variant.name}" epäonnistui 3 kertaa. Luovutetaan.`);
+		log(`Lippu "${variant.name}" epäonnistui 3 kertaa. Luovutetaan. Viimeisin syy: ${reason}`);
 		return 0;
 	}
 
 	log(
-		`Varaus lipulle "${variant.name}" epäonnistui. Yritetty ${tries + 1} kertaa. Yritetään uudelleen...`
+		`Varaus lipulle "${variant.name}" epäonnistui (${reason}). Yritetty ${
+			tries + 1
+		} kertaa. Yritetään uudelleen...`
 	);
 	await sleep(retryDelay);
 	return reserveRecursive(variant, accessToken, retryDelay, tries + 1);
@@ -47,7 +53,7 @@ const reserveRecursive = async (
 
 const EVENT_URL = 'https://kide.app/events/4b5875fa-4dae-42eb-aaf2-0dc4a4b0092a';
 const TAGS = ['jäsen'];
-const EXCLUDE_TAGS = ['kunniajäsen'];
+const EXCLUDE_TAGS = ['kunniajäsen', 'ei jäsen', 'non-member'];
 
 const matchesTag = (variantName: string, tag: string): boolean =>
 	variantName.toLowerCase().replace(/\s+/g, ' ').trim().includes(tag.toLowerCase().trim());
