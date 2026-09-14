@@ -11,7 +11,11 @@
 		"build": "tsc",
 		"start": "node dist/cli.js",
 		"dev": "tsx src/cli.ts",
-		"preview": "tsx src/cli.ts preview"
+		"preview": "tsx src/cli.ts preview",
+		"postinstall": "playwright install chromium"
+	},
+	"dependencies": {
+		"playwright": "^1.48.0"
 	},
 	"devDependencies": {
 		"@types/node": "^20.10.6",
