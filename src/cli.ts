@@ -45,7 +45,70 @@ const reserveRecursive = async (
 	return reserveRecursive(variant, accessToken, retryDelay, tries + 1);
 };
 
+const EVENT_URL = 'https://kide.app/events/76ddeac4-f4cd-466a-b8bc-df0e9b6bfb89';
+const TAGS = ['Artiklan jäsen', 'avec jäsen'];
+
+const matchesTag = (variantName: string, tag: string): boolean =>
+	variantName.toLowerCase().replace(/\s+/g, ' ').trim().includes(tag.toLowerCase().trim());
+
+// Turvallinen, kirjautumista vaatimaton esikatselu: näyttää tapahtuman TODELLISET
+// lipputyyppien nimet ja sen, mitkä niistä täsmäävät koodissa oleviin avainsanoihin.
+// Ei tee mitään varauksia. Aja: `pnpm preview`
+async function preview() {
+	const productId = EVENT_URL.split('/').pop() ?? '';
+	console.log(`Haetaan tapahtuman tiedot (${EVENT_URL})...\n`);
+
+	let event: IEvent;
+	try {
+		event = await apiRefreshEvent(productId);
+	} catch {
+		console.log('Tapahtumaa ei löytynyt tai sitä ei voitu hakea.');
+		return;
+	}
+
+	console.log(`Tapahtuma: ${event.product.name} (${event.product.city})`);
+	console.log(`Myynnin alku: ${new Date(event.product.dateSalesFrom).toLocaleString('fi-FI')}`);
+	console.log(`Lipunmyynti päättynyt: ${event.product.salesEnded ? 'kyllä' : 'ei'}\n`);
+
+	if (!event.variants || event.variants.length === 0) {
+		console.log(
+			'Lipputyyppejä ei ole vielä näkyvissä (ne saattavat ilmestyä vasta myynnin alkaessa).'
+		);
+		console.log('Aja tämä esikatselu uudelleen lähempänä/myynnin jälkeen tarkistaaksesi nimet.');
+		return;
+	}
+
+	console.log(`Avainsanat koodissa: ${TAGS.join(', ')}\n`);
+	console.log('Lipputyypit:');
+	let anyMatch = false;
+	for (const variant of event.variants) {
+		const matched = TAGS.filter((tag) => matchesTag(variant.name, tag));
+		if (matched.length > 0) anyMatch = true;
+		const marker = matched.length > 0 ? `✅ TÄSMÄÄ (${matched.join(', ')})` : '❌ ei täsmää';
+		console.log(`  - "${variant.name}" — saatavilla: ${variant.availability} — ${marker}`);
+	}
+
+	console.log('');
+	if (!anyMatch) {
+		console.log(
+			'⚠️  Yksikään lipputyyppi ei täsmää nykyisiin avainsanoihin! Botti varaisi TÄLLÄ HETKELLÄ' +
+				' kaikki lipputyypit (varmistustoiminto), mikä EI todennäköisesti ole tarkoitus.'
+		);
+		console.log(
+			'   Korjaa TAGS-vakio src/cli.ts:ssä täsmäämään yllä listattuja oikeita nimiä, aja `pnpm build`, ja tarkista tämä uudelleen.'
+		);
+	} else {
+		console.log('Avainsanat näyttävät täsmäävän oikein. Botti on turvallista käynnistää.');
+	}
+}
+
 async function main() {
+	if (process.argv[2] === 'preview') {
+		await preview();
+		rl.close();
+		return;
+	}
+
 	console.log('Kiderat CLI — Vujut-tapahtuman lippujen varausbotti\n');
 
 	// 1) Kirjautuminen
@@ -66,7 +129,6 @@ async function main() {
 	}
 
 	// 2) Tapahtuma — kiinnitetty Vujut-tapahtumaan
-	const EVENT_URL = 'https://kide.app/events/76ddeac4-f4cd-466a-b8bc-df0e9b6bfb89';
 	const productId = EVENT_URL.split('/').pop() ?? '';
 	let event: IEvent;
 	try {
@@ -86,7 +148,7 @@ async function main() {
 	const retryDelay = Number(await ask('Lipun varausviive (ms)', '500')) || 500;
 
 	// 4) Avainsanat — kiinnitetty Vujut-tapahtuman lipputyyppeihin
-	const tags = ['Artiklan jäsen', 'avec jäsen'];
+	const tags = TAGS;
 
 	console.log('\nYhteenveto:');
 	console.log(`  Tapahtuma:      ${event.product.name}`);
@@ -135,17 +197,16 @@ async function main() {
 	}
 
 	// 7) Suodatetaan avainsanoilla
+	log(`Löytyneet lipputyypit: ${refreshed.variants.map((v) => `"${v.name}"`).join(', ')}`);
 	let variants = refreshed.variants;
 	if (tags.length > 0) {
-		const filtered = variants.filter((v) =>
-			tags.some((t) => v.name.toLowerCase().includes(t.toLowerCase()))
-		);
+		const filtered = variants.filter((v) => tags.some((t) => matchesTag(v.name, t)));
 		if (filtered.length > 0) {
 			variants = filtered;
 			log(`Löytyi ${filtered.length} vaihtoehtoa avainsanojen perusteella.`);
 		} else {
 			log(
-				'Yhtään vaihtoehtoa ei löytynyt avainsanojen perusteella. Yritetään varata kaikki vaihtoehdot.'
+				'⚠️  Yhtään vaihtoehtoa ei löytynyt avainsanojen perusteella. Yritetään varata kaikki vaihtoehdot.'
 			);
 		}
 	}

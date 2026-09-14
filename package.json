@@ -10,7 +10,8 @@
 	"scripts": {
 		"build": "tsc",
 		"start": "node dist/cli.js",
-		"dev": "tsx src/cli.ts"
+		"dev": "tsx src/cli.ts",
+		"preview": "tsx src/cli.ts preview"
 	},
 	"devDependencies": {
 		"@types/node": "^20.10.6",
