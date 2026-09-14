@@ -49,7 +49,8 @@ export const apiReserveTicket = async (
 			headers: {
 				'Content-Type': 'application/json',
 				authorization: `Bearer ${accessToken}`,
-				'X-Requested-Token-fa': requestId,
+				'x-requested-token-bbf': requestId,
+				'x-requested-with': 'XMLHttpRequest',
 			},
 			body: JSON.stringify({
 				toCreate: [
