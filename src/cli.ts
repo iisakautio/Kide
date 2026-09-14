@@ -105,6 +105,12 @@ async function preview() {
 					? `✅ TÄSMÄÄ (${matched.join(', ')})`
 					: '❌ ei täsmää';
 		console.log(`  - "${variant.name}" — saatavilla: ${variant.availability} — ${marker}`);
+		console.log(
+			`      min/max per varaus: ${variant.productVariantMinimumReservableQuantity}/${variant.productVariantMaximumReservableQuantity}` +
+				`, max per käyttäjä: ${variant.productVariantMaximumItemQuantityPerUser}` +
+				`, Haka-tunnistus vaaditaan: ${variant.isProductVariantHakaAuthenticationRequired ? 'kyllä' : 'ei'}` +
+				`, pääsyoikeusrajoituksia: ${variant.accessControlMemberships?.length ?? 0}`
+		);
 	}
 
 	console.log('');
