@@ -47,9 +47,14 @@ const reserveRecursive = async (
 
 const EVENT_URL = 'https://kide.app/events/76ddeac4-f4cd-466a-b8bc-df0e9b6bfb89';
 const TAGS = ['jäsen'];
+const EXCLUDE_TAGS = ['kunniajäsen'];
 
 const matchesTag = (variantName: string, tag: string): boolean =>
 	variantName.toLowerCase().replace(/\s+/g, ' ').trim().includes(tag.toLowerCase().trim());
+
+const isWantedVariant = (variantName: string): boolean =>
+	TAGS.some((tag) => matchesTag(variantName, tag)) &&
+	!EXCLUDE_TAGS.some((tag) => matchesTag(variantName, tag));
 
 // Turvallinen, kirjautumista vaatimaton esikatselu: näyttää tapahtuman TODELLISET
 // lipputyyppien nimet ja sen, mitkä niistä täsmäävät koodissa oleviin avainsanoihin.
@@ -78,21 +83,29 @@ async function preview() {
 		return;
 	}
 
-	console.log(`Avainsanat koodissa: ${TAGS.join(', ')}\n`);
+	console.log(`Avainsanat koodissa: ${TAGS.join(', ')}`);
+	console.log(`Poissuljetut avainsanat: ${EXCLUDE_TAGS.join(', ')}\n`);
 	console.log('Lipputyypit:');
 	let anyMatch = false;
 	for (const variant of event.variants) {
 		const matched = TAGS.filter((tag) => matchesTag(variant.name, tag));
-		if (matched.length > 0) anyMatch = true;
-		const marker = matched.length > 0 ? `✅ TÄSMÄÄ (${matched.join(', ')})` : '❌ ei täsmää';
+		const excluded = EXCLUDE_TAGS.filter((tag) => matchesTag(variant.name, tag));
+		const wanted = matched.length > 0 && excluded.length === 0;
+		if (wanted) anyMatch = true;
+		const marker =
+			excluded.length > 0
+				? `🚫 poissuljettu (${excluded.join(', ')})`
+				: matched.length > 0
+					? `✅ TÄSMÄÄ (${matched.join(', ')})`
+					: '❌ ei täsmää';
 		console.log(`  - "${variant.name}" — saatavilla: ${variant.availability} — ${marker}`);
 	}
 
 	console.log('');
 	if (!anyMatch) {
 		console.log(
-			'⚠️  Yksikään lipputyyppi ei täsmää nykyisiin avainsanoihin! Botti varaisi TÄLLÄ HETKELLÄ' +
-				' kaikki lipputyypit (varmistustoiminto), mikä EI todennäköisesti ole tarkoitus.'
+			'⚠️  Yksikään lipputyyppi ei täsmää nykyisiin avainsanoihin (poissuljetut huomioiden)! ' +
+				'Botti EI varaisi mitään ja lopettaisi heti varovaisuussyistä.'
 		);
 		console.log(
 			'   Korjaa TAGS-vakio src/cli.ts:ssä täsmäämään yllä listattuja oikeita nimiä, aja `pnpm build`, ja tarkista tämä uudelleen.'
@@ -196,18 +209,26 @@ async function main() {
 		return;
 	}
 
-	// 7) Suodatetaan avainsanoilla
+	// 7) Suodatetaan avainsanoilla (pl. poissuljetut, esim. Kunniajäsen)
 	log(`Löytyneet lipputyypit: ${refreshed.variants.map((v) => `"${v.name}"`).join(', ')}`);
-	let variants = refreshed.variants;
+	const excludedFound = refreshed.variants.filter((v) =>
+		EXCLUDE_TAGS.some((t) => matchesTag(v.name, t))
+	);
+	if (excludedFound.length > 0) {
+		log(
+			`Poissuljettu (ei varata): ${excludedFound.map((v) => `"${v.name}"`).join(', ')}`
+		);
+	}
+
+	let variants = refreshed.variants.filter((v) => isWantedVariant(v.name));
 	if (tags.length > 0) {
-		const filtered = variants.filter((v) => tags.some((t) => matchesTag(v.name, t)));
-		if (filtered.length > 0) {
-			variants = filtered;
-			log(`Löytyi ${filtered.length} vaihtoehtoa avainsanojen perusteella.`);
+		if (variants.length > 0) {
+			log(`Löytyi ${variants.length} vaihtoehtoa avainsanojen perusteella.`);
 		} else {
 			log(
-				'⚠️  Yhtään vaihtoehtoa ei löytynyt avainsanojen perusteella. Yritetään varata kaikki vaihtoehdot.'
+				'⚠️  Yhtään vaihtoehtoa ei löytynyt avainsanojen perusteella (poissuljetut avainsanat huomioiden). Lopetetaan varovaisuussyistä.'
 			);
+			return;
 		}
 	}
 
