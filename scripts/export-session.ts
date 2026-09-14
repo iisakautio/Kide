@@ -27,8 +27,26 @@ async function main() {
 	}
 
 	const context = contexts[0];
-	await context.storageState({ path: OUTPUT_FILE });
-	console.log(`Istunto tallennettu tiedostoon ${OUTPUT_FILE}.`);
+	const state = await context.storageState({ path: OUTPUT_FILE });
+
+	const kideCookies = state.cookies.filter((c) => c.domain.includes('kide.app'));
+	if (kideCookies.length === 0) {
+		console.log(
+			`⚠️  VAROITUS: tallennetussa istunnossa ei ole yhtään kide.app-evästettä (${state.cookies.length} evästettä muilta sivustoilta).`
+		);
+		console.log(
+			'   Todennäköisin syy: selain, johon yhdistettiin, ei ollut se jossa kirjauduit kide.app:iin' +
+				' (esim. Edge avasi uuden ikkunan jo käynnissä olevaan, eri profiilin prosessiin).'
+		);
+		console.log(
+			'   Sulje KAIKKI Edge/Chrome-ikkunat kokonaan (Get-Process msedge | Stop-Process -Force),' +
+				' käynnistä selain uudelleen --remote-debugging-port-lipulla, kirjaudu kide.app:iin siinä, ja aja tämä uudelleen.'
+		);
+	} else {
+		console.log(
+			`Istunto tallennettu tiedostoon ${OUTPUT_FILE} (${kideCookies.length} kide.app-evästettä löytyi).`
+		);
+	}
 
 	// connectOverCDP: irrota yhteys sulkematta oikeaa selainta.
 	await browser.close();
