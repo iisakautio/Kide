@@ -46,7 +46,7 @@ const reserveRecursive = async (
 };
 
 async function main() {
-	console.log('Kiderat CLI — Kide.app-lippujen varausbotti\n');
+	console.log('Kiderat CLI — Vujut-tapahtuman lippujen varausbotti\n');
 
 	// 1) Kirjautuminen
 	let accessToken = '';
@@ -65,28 +65,19 @@ async function main() {
 		}
 	}
 
-	// 2) Tapahtuma
-	let productId = '';
-	let event!: IEvent;
-	while (true) {
-		const url = await ask('Tapahtuman URL');
-		const id = url.split('/').pop() ?? '';
-		if (id.length !== 36) {
-			console.log('Kelvoton URL-osoite.\n');
-			continue;
-		}
-		try {
-			const candidate = await apiRefreshEvent(id);
-			if (candidate.product.salesEnded) {
-				console.log('Tapahtuman lipunmyynti on päättynyt.\n');
-				continue;
-			}
-			event = candidate;
-			productId = id;
-			break;
-		} catch {
-			console.log('Tapahtumaa ei löytynyt.\n');
-		}
+	// 2) Tapahtuma — kiinnitetty Vujut-tapahtumaan
+	const EVENT_URL = 'https://kide.app/events/76ddeac4-f4cd-466a-b8bc-df0e9b6bfb89';
+	const productId = EVENT_URL.split('/').pop() ?? '';
+	let event: IEvent;
+	try {
+		event = await apiRefreshEvent(productId);
+	} catch {
+		console.log('Tapahtumaa ei löytynyt.');
+		return;
+	}
+	if (event.product.salesEnded) {
+		console.log('Tapahtuman lipunmyynti on päättynyt.');
+		return;
 	}
 	log(`Tapahtuma: ${event.product.name} (${event.product.city})`);
 
