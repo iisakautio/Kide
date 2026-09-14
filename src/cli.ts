@@ -46,7 +46,7 @@ const reserveRecursive = async (
 };
 
 const EVENT_URL = 'https://kide.app/events/76ddeac4-f4cd-466a-b8bc-df0e9b6bfb89';
-const TAGS = ['Artiklan jäsen', 'avec jäsen'];
+const TAGS = ['jäsen'];
 
 const matchesTag = (variantName: string, tag: string): boolean =>
 	variantName.toLowerCase().replace(/\s+/g, ' ').trim().includes(tag.toLowerCase().trim());
