@@ -12,6 +12,7 @@
 		"start": "node dist/cli.js",
 		"dev": "tsx src/cli.ts",
 		"preview": "tsx src/cli.ts preview",
+		"export-session": "tsx scripts/export-session.ts",
 		"postinstall": "playwright install chromium"
 	},
 	"dependencies": {

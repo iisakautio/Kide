@@ -11,6 +11,9 @@ node_modules
 dist
 *.local
 
+# Real browser session data (cookies/tokens) - never commit this
+auth-state.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
