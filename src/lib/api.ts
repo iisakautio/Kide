@@ -53,14 +53,15 @@ export const apiReserveTicket = async (
 				'x-requested-with': 'XMLHttpRequest',
 			},
 			body: JSON.stringify({
+				expectCart: true,
+				includeDeliveryMethods: false,
+				toCancel: [],
 				toCreate: [
 					{
 						inventoryId: variant.inventoryId,
 						quantity,
-						productVariantUserForm: null,
 					},
 				],
-				toCancel: [],
 			}),
 		});
 
